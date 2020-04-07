@@ -8,12 +8,24 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
+var r = flag.Bool("r", true, "")
+var readonly = true
+
 func main() {
+	flag.Parse()
+
+	readonly = *r
+
+	if strings.HasSuffix(os.Args[0], "-w.exe") {
+		readonly = false
+	}
 
 	cnt := procDir("./")
 	fmt.Println("成功处理数目：", cnt)
@@ -40,7 +52,12 @@ func procDir(dir string) int {
 
 		// 注意:这里会walk所有得文件!(而不仅仅是当前层级得)
 		if !f.IsDir() {
-			err2 := SetReadOnly(src)
+			var err2 error
+			if readonly {
+				err2 = SetReadOnly(src)
+			} else {
+				err2 = SetWritable(src)
+			}
 			if err2 != nil {
 				fmt.Println("error:", err2.Error())
 			} else {
